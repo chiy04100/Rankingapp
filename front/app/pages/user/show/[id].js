@@ -12,6 +12,7 @@ const UserDetail = () => {
   const { id } = router.query;
   const [user, setUser] = useState(null);
   const [showButtons, setShowButtons] = useState(false);
+  const [friendRequestSent, setFriendRequestSent] = useState(null);
 
   useEffect(() => {
     if (id && userId && id === userId) {
@@ -22,8 +23,18 @@ const UserDetail = () => {
   useEffect(() => {
     if (id) {
       fetchUserDetail(id);
+      fetchFriendRequestStatus();
     }
   }, [id]);
+
+  const fetchFriendRequestStatus = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/friendships/${id}`);
+      setFriendRequestSent(response.data);
+    } catch (error) {
+      console.error('Error fetching friend request status:', error);
+    }
+  };
 
   const fetchUserDetail = async (userId) => {
     try {
@@ -47,6 +58,30 @@ const UserDetail = () => {
       console.error('Error deleting user:', error);
     }
   };  
+
+  const handleFriendRequest = async () => {
+    try {
+      if (!friendRequestSent) {
+        // フレンドリクエストがまだ送信されていない場合、新しいフレンドリクエストを送信する
+        const response = await axios.post(`http://localhost:3000/friendships`, {
+          sender_id: userId,
+          receiver_id: id,
+          friend_status_id: 1,
+        });
+        setFriendRequestSent(response.data);
+        console.log(friendRequestSent); // フレンドリクエストが送信された後、フレンドシップレコードのIDを取得してセット
+      } else {
+        // 既にフレンドリクエストが存在する場合は、キャンセルする
+        await axios.put(`http://localhost:3000/friendships/${friendRequestSent.id}`, {
+          friend_status_id: 3, // 3はキャンセルを示す
+        });
+        setFriendRequestSent(null); // フレンドリクエストをキャンセルした後、nullにリセット
+      }
+    } catch (error) {
+      console.error('Error sending/canceling friend request:', error);
+    }
+  };
+  
 
   return (
     <div className="container py-4">
@@ -95,6 +130,34 @@ const UserDetail = () => {
                   </td>
                 </tr>
                 )}
+                  {!showButtons && !friendRequestSent && (
+                    <tr>
+                      <th></th>
+                      <td className="text-end">
+                        <button
+                          className="btn btn-primary float-right"
+                          style={{ width: '120px' }}
+                          onClick={handleFriendRequest}
+                        >
+                          フレンド申請
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                  {!showButtons && friendRequestSent && (
+                    <tr>
+                      <th></th>
+                      <td className="text-end">
+                        <button
+                          className="btn btn-warning float-right"
+                          style={{ width: '140px' }}
+                          onClick={handleFriendRequest}
+                        >
+                          申請キャンセル
+                        </button>
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>
