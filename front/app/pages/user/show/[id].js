@@ -12,39 +12,50 @@ const UserDetail = () => {
   const { id } = router.query;
   const [user, setUser] = useState(null);
   const [showButtons, setShowButtons] = useState(false);
-  const [friendRequestSent, setFriendRequestSent] = useState(null);
+  const [friendRequestSent, setFriendRequestSent] = useState(
+    typeof window !== 'undefined' && id && localStorage.getItem(`friendRequestSent-${id}`)
+      ? JSON.parse(localStorage.getItem(`friendRequestSent-${id}`))
+      : null
+  );
+  
+  useEffect(() => {
+    if (id && userId) {
+      fetchUserDetail(id);
+    }
+  }, [id, userId]);
 
   useEffect(() => {
     if (id && userId && id === userId) {
       setShowButtons(true);
     }
-  }, [id, userId]);  
-
-  useEffect(() => {
-    if (id) {
-      fetchUserDetail(id);
-      fetchFriendRequestStatus();
-    }
-  }, [id]);
-
-  const fetchFriendRequestStatus = async () => {
-    try {
-      const response = await axios.get(`http://localhost:3000/friendships/${id}`);
-      setFriendRequestSent(response.data);
-    } catch (error) {
-      console.error('Error fetching friend request status:', error);
-    }
-  };
+  }, [id, userId]);
 
   const fetchUserDetail = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:3000//users/${userId}`, { method: 'GET' });
+      const response = await fetch(`http://localhost:3000/users/${userId}`, { method: 'GET' });
       const json = await response.json();
+  
+      // Check if the user data includes the friendRequestSent property
+      // If it does, update the state accordingly
+      if (json.friendRequestSent) {
+        setFriendRequestSent(json.friendRequestSent);
+      } else {
+        // If the friendRequestSent property is not available in the user data,
+        // retrieve the state from localStorage
+        const localStorageData = localStorage.getItem(`friendRequestSent-${id}`);
+        if (localStorageData) {
+          setFriendRequestSent(JSON.parse(localStorageData));
+        } else {
+          setFriendRequestSent(null);
+        }
+      }
+  
       setUser(json);
     } catch (error) {
       console.error('Error fetching user detail:', error);
     }
   };
+  
   
   const handleDelete = async () => {
     try {
@@ -60,28 +71,38 @@ const UserDetail = () => {
   };  
 
   const handleFriendRequest = async () => {
+    let response; // Define the variable outside the try-catch block
     try {
       if (!friendRequestSent) {
-        // フレンドリクエストがまだ送信されていない場合、新しいフレンドリクエストを送信する
-        const response = await axios.post(`http://localhost:3000/friendships`, {
+        // Sending a friend request
+        response = await axios.post(`http://localhost:3000/friendships`, {
           sender_id: userId,
           receiver_id: id,
           friend_status_id: 1,
         });
-        setFriendRequestSent(response.data);
-        console.log(friendRequestSent); // フレンドリクエストが送信された後、フレンドシップレコードのIDを取得してセット
+  
+        // Store the updated friendRequestSent state in localStorage (Client-side only)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`friendRequestSent-${id}`, JSON.stringify(response.data));
+        }
       } else {
-        // 既にフレンドリクエストが存在する場合は、キャンセルする
-        await axios.put(`http://localhost:3000/friendships/${friendRequestSent.id}`, {
-          friend_status_id: 3, // 3はキャンセルを示す
+        // Canceling a friend request
+        response = await axios.put(`http://localhost:3000/friendships/${friendRequestSent.id}`, {
+          friend_status_id: 3,
         });
-        setFriendRequestSent(null); // フレンドリクエストをキャンセルした後、nullにリセット
+  
+        // Remove the stored friendRequestSent state from localStorage (Client-side only)
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(`friendRequestSent-${id}`);
+        }
       }
+  
+      // Update the state for the specific user only
+      setFriendRequestSent(friendRequestSent ? null : response.data);
     } catch (error) {
       console.error('Error sending/canceling friend request:', error);
     }
-  };
-  
+  };  
 
   return (
     <div className="container py-4">

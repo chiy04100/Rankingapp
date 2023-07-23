@@ -23,14 +23,12 @@ const Home = (props) => {
             <>
               <header className="mt-4 d-flex align-items-center justify-content-between">
                 <h2>Userの一覧</h2>
-                <Link href="/friend/friendpage">
-                  <p className="nav-link me-4">フレンド申請一覧</p>
-                </Link>
                 <nav className="d-flex">
                   <NavDropdown title={userName} id="basic-nav-dropdown">
                     <NavDropdown.Item href={`/user/show/${userId}`}>mypage</NavDropdown.Item>
                     <NavDropdown.Item href={`/friend/friendlist`}>myfrindlist</NavDropdown.Item>
                     <NavDropdown.Item href={`/friend/friendrequest`}>myfrindrequest</NavDropdown.Item>
+                    <NavDropdown.Item href={`/friend/friendpage`}>FriendApprovalRequest</NavDropdown.Item>
                     <NavDropdown.Item>
                       <LogoutButton />
                     </NavDropdown.Item>

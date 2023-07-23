@@ -57,21 +57,28 @@ const FriendshipRequests = () => {
   };
 
   return (
-    <div>
+    <div className="container py-4">
       <h3>フレンド申請一覧</h3>
       <Link href="/">Back to Home</Link>
+
       {Array.isArray(friendshipRequests) && friendshipRequests.length > 0 ? (
-        <ul>
+        <ul className="list-group mt-3">
           {friendshipRequests.map((request) => (
-            <li key={request.id}>
+            <li key={request.id} className="list-group-item d-flex justify-content-between align-items-center">
               {`From: User ID ${request.sender_id}, Username: ${request.username}`}
-              <button onClick={() => handleApprove(request.id)}>承認</button>
-              <button onClick={() => handleReject(request.id)}>拒否</button>
+              <div>
+                <button className="btn btn-success mx-2" onClick={() => handleApprove(request.id)}>
+                  承認
+                </button>
+                <button className="btn btn-danger" onClick={() => handleReject(request.id)}>
+                  拒否
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p>No friendship requests found.</p>
+        <p className="mt-3">No friendship requests found.</p>
       )}
     </div>
   );

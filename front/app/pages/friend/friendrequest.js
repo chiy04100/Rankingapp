@@ -37,18 +37,20 @@ const FriendListPage = () => {
       <Link href="/">Back to Home</Link>
 
       {Array.isArray(friendList) && friendList.length > 0 ? (
-        <ul>
+        <ul className="list-group mt-3">
           {friendList.map((friend) => (
-            <li key={friend.id}>
+            <li key={friend.id} className="list-group-item d-flex justify-content-between align-items-center">
               {`Friend Name: ${friend.username}`}
-              <Link href={`/user/show/${friend.id}`}>
-                <button className="btn btn-primary">UserProfile</button>
-              </Link>
+              <div>
+                <Link href={`/user/show/${friend.id}`}>
+                  <button className="btn btn-primary">UserProfile</button>
+                </Link>
+              </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p>No friends found.</p>
+        <p className="mt-3">No friends found.</p>
       )}
     </div>
   );
