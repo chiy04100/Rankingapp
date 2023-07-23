@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :friendships
   resources :friend_requests, only: [:index, :destroy]
+  resources :friend_button, only: [:index, :show]
   resources :friend_statuses
   resources :users do
     collection do
